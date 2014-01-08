@@ -1,5 +1,5 @@
 <head>
-  <title>power-queue</title>
+  <title>power-masterQueue</title>
 </head>
 
 <body>
@@ -8,49 +8,54 @@
 
 <template name="hello">
   <h1>Hello Power-Queue!!</h1>
-  {{greeting}}<br/>
+  This is the Sub Queue QA demo test...<br/>
+  <br/>
   <input type="button" value="Add 100 tasks!!" class="addTask"/>
   <input type="button" value="Run" class="runQueue"/>
   <input type="button" value="Pause" class="pauseQueue"/>
+  <input type="button" value="Resume" class="resumeQueue"/>
   <input type="button" value="Toggle autostart" class="toggleAutostart"/>
   <input type="button" value="Reset" class="btnReset"/>
   <br/>
-  Is running: {{queue.running}}<br/>
-  Is paused: {{queue.paused}}<br/>
-  Autostart: {{queue.autostart}}<br/>
+  Is running: {{masterQueue.running}}<br/>
+  Is paused: {{masterQueue.paused}}<br/>
+  Autostart: {{masterQueue.autostart}}<br/>
 
-  Length of queue: {{queue.length}} of {{queue.total}} (including {{queue.failures}} retries)<br/>
-  {{> progressCircle queue}}<br/>
+  Length of masterQueue: {{masterQueue.length}} of {{masterQueue.total}} (including {{masterQueue.failures}} retries)<br/>
+  {{> progressCircle masterQueue}}<br/>
 
-  Processing: {{queue.processing}} (limit is {{queue.maxProcessing}} in total)
   <input type="button" value="+" class="incLimit"/>
   <input type="button" value="-" class="decLimit"/>
   <input type="button" value="+100" class="incLimit100"/>
   <input type="button" value="-50" class="decLimit50"/>
+  Processing: {{masterQueue.processing}} (limit is {{masterQueue.maxProcessing}} in total)
   <br/>
   {{> progressCircle processing}}<br/>
 
-  Failures: {{queue.failures}} (including {{queue.errors}} errors) Allow {{queue.maxFailures}} retries <input type="button" value="+" class="incFailures"/><input type="button" value="-" class="decFailures"/>
+  <input type="button" value="+" class="incFailures"/>
+  <input type="button" value="-" class="decFailures"/>
+  Failures: {{masterQueue.failures}} (including {{masterQueue.errors}} errors) Allow {{masterQueue.maxFailures}} retries
   <br/>
   {{> progressCircle failureRate}}
   {{> progressCircle errorRate}}<br/>
-  In this test tasks will fail aprox. 50% of the time, every task is allowed {{queue.maxFailures}} failures before removing the task from the queue.
+  In this test tasks will fail aprox. 50% of the time, every task is allowed {{masterQueue.maxFailures}} failures before removing the task from the masterQueue.
   <br/>
   {{! > progressCircle reactive}}
   <br/>
-  <div class="taskBox added"></div> Task in queue<br/>
-  <div class="taskBox processing"></div> Task being processed<br/>
-  <div class="taskBox done"></div> Task done<br/>
-  <div class="taskBox failed"></div> Task failed<br/>
-  <div class="taskBox error"></div> Task terminated<br/>
   Tasks being processed:<br/>
   <div style="width: 20em; height: 200px; overflow-y:scroll; border: 1px solid black;">
     {{#each processingList}}
-      id: {{id}}<br/>
+      id: {{id}} - {{queue.metadata.name}} - {{queue.progress}} %<br/>
     {{else}}
     No items in reactive list
     {{/each}}
   </div>
+  <br/>
+  <div class="taskBox added"></div> Task in masterQueue<br/>
+  <div class="taskBox processing"></div> Task being processed<br/>
+  <div class="taskBox done"></div> Task done<br/>
+  <div class="taskBox failed"></div> Task failed<br/>
+  <div class="taskBox error"></div> Task terminated<br/>
   <br/>
   {{> tasks}}
 </template>

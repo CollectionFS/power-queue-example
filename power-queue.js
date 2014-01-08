@@ -1,8 +1,9 @@
 coll = new Meteor.Collection("test");
 
 if (Meteor.isClient) {
-  var queue = new PowerQueue({
-    maxProcessing: 10
+  queue = new PowerQueue({
+    maxProcessing: 10,
+    autostart: false
   });
 
 
@@ -23,13 +24,13 @@ if (Meteor.isClient) {
     return (this.index % 20) == 0;
   };
 
-  queue.errorHandler = function(data, addTask) {
+  queueErrorHandler = function(data, addTask) {
     // This error handler lets the task drop, but we could use addTask to
     // Put the task into the queue again
     tasks.update({ _id: data.id }, { $set: { status: 'error'} });
   };
 
-  queue.taskHandler = function(data, next) {
+  queueTaskHandler = function(data, next) {
 
     // The task is now processed...
     tasks.update({ _id: data.id }, { $set: { status: 'processing'} });
@@ -63,7 +64,7 @@ if (Meteor.isClient) {
     return queue.processingList();
   };
 
-  Template.hello.queue = function() {
+  Template.hello.masterQueue = function() {
     return {
       progress: queue.progress(),
       radius: 30,
@@ -114,17 +115,40 @@ if (Meteor.isClient) {
   };
 
   var taskId = 0;
+  var subQueueId = 0;
+
+  var randomHexByte = function() {
+    var value = Math.round(Math.random() * 255);
+    return '' + value.toString(16);
+  };
+
+  var addSubTask = function() {
+    var newQueue = new PowerQueue({
+      autostart: false
+    });
+    newQueue.taskHandler = queueTaskHandler;
+    newQueue.errorHandler = queueErrorHandler;
+    var numChunks = 20; // Math.round(Math.random() * 20 + 1);
+    var border = '#'+randomHexByte()+randomHexByte()+randomHexByte();
+
+    for (var a=0; a < numChunks; a++) {
+      newQueue.add({ id: tasks.insert({ status: 'added', index: ++taskId, border: border }) });
+    }
+    newQueue.metadata = { name: 'Queue ' + (++subQueueId) };
+    
+    queue.add(newQueue);
+  };
 
   Meteor.startup(function() {
-    for (var i=0; i < 300; i++) {
-      queue.add({ id: tasks.insert({ status: 'added', index: ++taskId }) });
+    for (var i=0; i < 100; i++) {
+      addSubTask();
     }
   });
 
   Template.hello.events({
     'click .addTask' : function () {
       for (var i=0; i < 100; i++) {
-        queue.add({ id: tasks.insert({ status: 'added', index: ++taskId }) });
+        addSubTask();
       }
 
     },
@@ -137,6 +161,9 @@ if (Meteor.isClient) {
     },
     'click .pauseQueue': function() {
       queue.pause();
+    },
+    'click .resumeQueue': function() {
+      queue.resume();
     },
     'click .toggleAutostart': function() {
       queue.autostart(!queue.autostart());
