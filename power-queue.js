@@ -1,9 +1,13 @@
 coll = new Meteor.Collection("test");
 
+// Set to 20 for a fixed number of sub queues
+// set false or 0 to allow random 1..20 length
+var fixedLength = false;
+
 if (Meteor.isClient) {
   queue = new PowerQueue({
-    maxProcessing: 10,
-    autostart: false
+    maxProcessing: 5,
+    autostart: true
   });
 
 
@@ -21,7 +25,8 @@ if (Meteor.isClient) {
 
   var taskIndex = 0;
   Template.tasks.$index = function() {
-    return (this.index % 20) == 0;
+    //return (this.index % 20) == 0;
+    return this.doBreak;
   };
 
   queueErrorHandler = function(data, addTask) {
@@ -128,26 +133,28 @@ if (Meteor.isClient) {
     });
     newQueue.taskHandler = queueTaskHandler;
     newQueue.errorHandler = queueErrorHandler;
-    var numChunks = 20; // Math.round(Math.random() * 20 + 1);
+    var numChunks = fixedLength || Math.round(Math.random() * 20 + 1);
     var border = '#'+randomHexByte()+randomHexByte()+randomHexByte();
 
+    subQueueId++;
+
     for (var a=0; a < numChunks; a++) {
-      newQueue.add({ id: tasks.insert({ status: 'added', index: ++taskId, border: border }) });
+      newQueue.add({ id: tasks.insert({ doBreak: (a == numChunks-1), status: 'added', index: ++taskId, border: border }) });
     }
-    newQueue.metadata = { name: 'Queue ' + (++subQueueId) };
+    newQueue.metadata = { name: 'Queue ' + subQueueId };
     
     queue.add(newQueue);
   };
 
   Meteor.startup(function() {
-    for (var i=0; i < 100; i++) {
+    for (var i=0; i < 30; i++) {
       addSubTask();
     }
   });
 
   Template.hello.events({
     'click .addTask' : function () {
-      for (var i=0; i < 100; i++) {
+      for (var i=0; i < 10; i++) {
         addSubTask();
       }
 
@@ -177,14 +184,14 @@ if (Meteor.isClient) {
       queue.maxProcessing(queue.maxProcessing()+1);
     },
     'click .decLimit50': function() {
-      if (queue.maxProcessing() > 51) {
-        queue.maxProcessing(queue.maxProcessing()-50);
+      if (queue.maxProcessing() > 6) {
+        queue.maxProcessing(queue.maxProcessing()-5);
       } else {
         queue.maxProcessing(1);
       }
     },
     'click .incLimit100': function() {
-      queue.maxProcessing(queue.maxProcessing()+100);
+      queue.maxProcessing(queue.maxProcessing()+10);
     },
     'click .decFailures': function() {
       if (queue.maxFailures() > 0) {

@@ -10,7 +10,7 @@
   <h1>Hello Power-Queue!!</h1>
   This is the Sub Queue QA demo test...<br/>
   <br/>
-  <input type="button" value="Add 100 tasks!!" class="addTask"/>
+  <input type="button" value="Add 10 sub queues!!" class="addTask"/>
   <input type="button" value="Run" class="runQueue"/>
   <input type="button" value="Pause" class="pauseQueue"/>
   <input type="button" value="Resume" class="resumeQueue"/>
@@ -26,8 +26,8 @@
 
   <input type="button" value="+" class="incLimit"/>
   <input type="button" value="-" class="decLimit"/>
-  <input type="button" value="+100" class="incLimit100"/>
-  <input type="button" value="-50" class="decLimit50"/>
+  <input type="button" value="+10" class="incLimit100"/>
+  <input type="button" value="-5" class="decLimit50"/>
   Processing: {{masterQueue.processing}} (limit is {{masterQueue.maxProcessing}} in total)
   <br/>
   {{> progressCircle processing}}<br/>
@@ -62,7 +62,17 @@
 
 <template name="tasks">
   {{#each tasks}}
-    <div class="taskBox {{status}}"></div>
+    <section class="container">
+      <div id="cube" class="{{status}} panels-backface-invisible">
+        <figure class="front">Wait</figure>
+        <figure class="back">Work</figure>
+        <figure class="right">OK</figure>
+        <figure class="left">Fail</figure>
+        <figure class="top">Err</figure>
+        <figure class="bottom">Work</figure>
+      </div>
+    </section>
+    <!-- <div class="taskBox {{status}}"></div> -->
     {{#if $index}}<br/>{{/if}}
   {{/each}}
 </template>
