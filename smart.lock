@@ -1,0 +1,33 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "ui-progress-circle": {},
+      "power-queue": {
+        "version": "0.9.1"
+      }
+    },
+    "packages": {
+      "ui-progress-circle": {
+        "git": "https://github.com/MeteorWidgets/Meteor-ui-progress-circle.git",
+        "tag": "v0.0.2",
+        "commit": "e34a40e64247698c2ccc02ff580baf92b7117628"
+      },
+      "power-queue": {
+        "git": "https://github.com/CollectionFS/Meteor-powerqueue.git",
+        "tag": "v0.9.1",
+        "commit": "b9c28d844bd495ac220772d4c6adc5e4b855553e"
+      },
+      "reactive-property": {
+        "git": "https://github.com/CollectionFS/Meteor-reactive-property.git",
+        "branch": "master",
+        "commit": "fcd9d1cafbc2d86d5a25fb3c1d92a6d0348b6e08"
+      },
+      "reactive-list": {
+        "git": "https://github.com/CollectionFS/Meteor-reactive-list.git",
+        "branch": "master",
+        "commit": "e0bf1cd1c2b71b6fad411cef3e345bad16cb98c7"
+      }
+    }
+  }
+}

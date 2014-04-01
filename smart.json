@@ -1,0 +1,8 @@
+{
+  "packages": {
+    "ui-progress-circle": {},
+    "power-queue": {
+      "version": "0.9.1"
+    }
+  }
+}
