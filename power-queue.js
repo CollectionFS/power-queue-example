@@ -1,20 +1,20 @@
-coll = new Meteor.Collection("test");
+var useCollection = true;
+var createFailures = true;
+var taskDuration = 0;
+var beReactive = true;
+var numberOfSubTasks = 50;
+var debug = true;
 
 // Set to 20 for a fixed number of sub queues
 // set false or 0 to allow random 1..20 length
-var fixedLength = false;
+var fixedLength = 0;
 
 if (Meteor.isClient) {
   queue = new PowerQueue({
     maxProcessing: 5,
-    autostart: true
-  });
-
-
-  Meteor.startup(function() {
-    if (!coll.findOne({})) {
-      coll.insert({ title: "foo" });
-    }
+    autostart: true,
+    debug: debug,
+    reactive: beReactive
   });
 
   var tasks = new Meteor.Collection('tasks', { connection: null});
@@ -32,28 +32,28 @@ if (Meteor.isClient) {
   queueErrorHandler = function(data, addTask) {
     // This error handler lets the task drop, but we could use addTask to
     // Put the task into the queue again
-    tasks.update({ _id: data.id }, { $set: { status: 'error'} });
+    if (useCollection) tasks.update({ _id: data.id }, { $set: { status: 'error'} });
   };
 
   queueTaskHandler = function(data, next) {
 
     // The task is now processed...
-    tasks.update({ _id: data.id }, { $set: { status: 'processing'} });
+    if (useCollection) tasks.update({ _id: data.id }, { $set: { status: 'processing'} });
 
     Meteor.setTimeout(function() {
-      if (Math.random() > 0.5) {
+      if (createFailures && Math.random() > 0.5) {
         // We random fail the task
-        tasks.update({ _id: data.id }, { $set: { status: 'failed'} });
+        if (useCollection) tasks.update({ _id: data.id }, { $set: { status: 'failed'} });
         // Returning error to next
-        next('Error: Fail task');
+        next(new Meteor.Error('Error: Fail task'));
       } else {
         // We are done!
-        tasks.update({ _id: data.id }, { $set: { status: 'done'} });
+        if (useCollection) tasks.update({ _id: data.id }, { $set: { status: 'done'} });
         // Trigger next task
         next();
       }
-      // This async task duration is between 500 - 1000ms
-    }, Math.round(500 + 500 * Math.random()));
+      // This async task duration is between 500 - 2000ms
+    }, taskDuration || Math.round(500 + 1500 * Math.random()));
   };
 
   // reactiveObject = Reactive.extend({}, { 
@@ -128,18 +128,24 @@ if (Meteor.isClient) {
   };
 
   var addSubTask = function() {
+    subQueueId++;
+
     var newQueue = new PowerQueue({
-      autostart: false
+      autostart: false,
+      debug: debug,
+      name: 'Queue' + subQueueId,
+      reactive: beReactive
     });
     newQueue.taskHandler = queueTaskHandler;
     newQueue.errorHandler = queueErrorHandler;
     var numChunks = fixedLength || Math.round(Math.random() * 20 + 1);
     var border = '#'+randomHexByte()+randomHexByte()+randomHexByte();
 
-    subQueueId++;
 
     for (var a=0; a < numChunks; a++) {
-      newQueue.add({ id: tasks.insert({ doBreak: (a == numChunks-1), status: 'added', index: ++taskId, border: border }) });
+      newQueue.add({
+        id: (useCollection)? tasks.insert({ doBreak: (a == numChunks-1), status: 'added', index: ++taskId, border: border }):0
+      });
     }
     newQueue.metadata = { name: 'Queue ' + subQueueId };
     
@@ -147,7 +153,7 @@ if (Meteor.isClient) {
   };
 
   Meteor.startup(function() {
-    for (var i=0; i < 30; i++) {
+    for (var i=0; i < numberOfSubTasks; i++) {
       addSubTask();
     }
   });
@@ -164,7 +170,7 @@ if (Meteor.isClient) {
     },
     'click .btnReset': function() {
       queue.reset();
-      tasks.remove({});
+      if (useCollection) tasks.remove({});
     },
     'click .pauseQueue': function() {
       queue.pause();
@@ -222,6 +228,7 @@ if (Meteor.isServer) {
     queue.add(function(done) {
       console.log('task 1');
       done();
+      console.log('task 1 nr. 2...');
     });
     queue.add(function(done) {
       console.log('task 2');

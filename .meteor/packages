@@ -6,7 +6,6 @@
 standard-app-packages
 autopublish
 insecure
-preserve-inputs
 power-queue
 ui-progress-circle
 reactive-list
