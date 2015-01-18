@@ -6,6 +6,6 @@
 standard-app-packages
 autopublish
 insecure
-power-queue
-ui-progress-circle
-reactive-list
+raix:ui-progress-circle
+cfs:power-queue
+cfs:reactive-list
